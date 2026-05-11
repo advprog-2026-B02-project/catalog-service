@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BidSyncController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bidmart-catalog-service</a> &gt; <a href="index.source.html" class="el_package">id.ac.ui.cs.advprog.bidmart.catalog.controller</a> &gt; <span class="el_source">BidSyncController.java</span></div><h1>BidSyncController.java</h1><pre class="source lang-java linenums">package id.ac.ui.cs.advprog.bidmart.catalog.controller;
+
+import id.ac.ui.cs.advprog.bidmart.catalog.service.ListingService;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.math.BigDecimal;
+import java.util.UUID;
+
+
+@RestController
+@RequestMapping(&quot;/internal/listings&quot;)
+@RequiredArgsConstructor
+public class BidSyncController {
+
+    private final ListingService listingService;
+
+    @PostMapping(&quot;/{listingId}/validate-bid&quot;)
+    public ResponseEntity&lt;Void&gt; validateForBid(@PathVariable UUID listingId) {
+<span class="fc" id="L29">        listingService.validateListingForBid(listingId);</span>
+<span class="fc" id="L30">        return ResponseEntity.ok().build();</span>
+    }
+
+    @PostMapping(&quot;/{listingId}/sync-price&quot;)
+    public ResponseEntity&lt;Void&gt; syncPrice(
+            @PathVariable UUID listingId,
+            @RequestBody SyncPriceRequest request
+    ) {
+<span class="fc" id="L38">        listingService.syncPrice(listingId, request.getNewPrice(), request.getBidCount());</span>
+<span class="fc" id="L39">        return ResponseEntity.ok().build();</span>
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SyncPriceRequest {
+        private BigDecimal newPrice;
+        private int bidCount;
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

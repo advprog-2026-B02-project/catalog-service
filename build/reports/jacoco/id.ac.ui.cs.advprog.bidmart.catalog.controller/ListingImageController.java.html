@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ListingImageController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bidmart-catalog-service</a> &gt; <a href="index.source.html" class="el_package">id.ac.ui.cs.advprog.bidmart.catalog.controller</a> &gt; <span class="el_source">ListingImageController.java</span></div><h1>ListingImageController.java</h1><pre class="source lang-java linenums">package id.ac.ui.cs.advprog.bidmart.catalog.controller;
+
+import id.ac.ui.cs.advprog.bidmart.catalog.dto.ListingImageRequest;
+import id.ac.ui.cs.advprog.bidmart.catalog.dto.ListingImageResponse;
+import id.ac.ui.cs.advprog.bidmart.catalog.model.Listing;
+import id.ac.ui.cs.advprog.bidmart.catalog.model.ListingImage;
+import id.ac.ui.cs.advprog.bidmart.catalog.repository.ListingImageRepository;
+import id.ac.ui.cs.advprog.bidmart.catalog.repository.ListingRepository;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.UUID;
+
+@RestController
+@RequestMapping(&quot;/listings/{listingId}/images&quot;)
+@RequiredArgsConstructor
+public class ListingImageController {
+
+    private final ListingRepository      listingRepository;
+    private final ListingImageRepository listingImageRepository;
+
+
+    @PostMapping
+    public ResponseEntity&lt;ListingImageResponse&gt; addImage(
+            @PathVariable UUID listingId,
+            @RequestHeader(&quot;X-Seller-Id&quot;) UUID sellerId,
+            @Valid @RequestBody ListingImageRequest request
+    ) {
+<span class="fc" id="L39">        Listing listing = getListingOrThrow(listingId);</span>
+<span class="fc" id="L40">        assertOwner(listing, sellerId);</span>
+
+<span class="fc" id="L42">        ListingImage image = ListingImage.builder()</span>
+<span class="fc" id="L43">                .listingId(listingId)</span>
+<span class="fc" id="L44">                .url(request.getUrl())</span>
+<span class="fc" id="L45">                .thumbnailUrl(request.getThumbnailUrl())</span>
+<span class="fc" id="L46">                .displayOrder(request.getDisplayOrder())</span>
+<span class="fc" id="L47">                .build();</span>
+
+<span class="fc" id="L49">        listing.getImages().add(image);</span>
+<span class="fc" id="L50">        listingRepository.save(listing);</span>
+
+<span class="fc" id="L52">        return ResponseEntity.status(HttpStatus.CREATED)</span>
+<span class="fc" id="L53">                .body(ListingImageResponse.from(listing.getImages().getLast()));</span>
+    }
+
+
+    @DeleteMapping(&quot;/{imageId}&quot;)
+    public ResponseEntity&lt;Void&gt; removeImage(
+            @PathVariable UUID listingId,
+            @PathVariable UUID imageId,
+            @RequestHeader(&quot;X-Seller-Id&quot;) UUID sellerId
+    ) {
+<span class="fc" id="L63">        Listing listing = getListingOrThrow(listingId);</span>
+<span class="fc" id="L64">        assertOwner(listing, sellerId);</span>
+
+<span class="fc" id="L66">        ListingImage image = listingImageRepository.findById(imageId)</span>
+<span class="pc" id="L67">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND,</span>
+                        &quot;Gambar tidak ditemukan: &quot; + imageId));
+
+<span class="fc" id="L70">        listing.getImages().remove(image);</span>
+<span class="fc" id="L71">        listingRepository.save(listing);</span>
+
+<span class="fc" id="L73">        return ResponseEntity.noContent().build();</span>
+    }
+
+
+    private Listing getListingOrThrow(UUID listingId) {
+<span class="fc" id="L78">        return listingRepository.findById(listingId)</span>
+<span class="pc" id="L79">                .orElseThrow(() -&gt; new ResponseStatusException(HttpStatus.NOT_FOUND,</span>
+                        &quot;Listing tidak ditemukan: &quot; + listingId));
+    }
+
+    private void assertOwner(Listing listing, UUID sellerId) {
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">        if (!listing.getSellerId().equals(sellerId)) {</span>
+<span class="nc" id="L85">            throw new ResponseStatusException(HttpStatus.FORBIDDEN,</span>
+                    &quot;Anda bukan pemilik listing ini.&quot;);
+        }
+<span class="fc" id="L88">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

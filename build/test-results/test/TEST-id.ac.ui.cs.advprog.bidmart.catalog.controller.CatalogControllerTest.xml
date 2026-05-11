@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="id.ac.ui.cs.advprog.bidmart.catalog.controller.CatalogControllerTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-05-11T15:08:12.608Z" hostname="Nail" time="0.082">
+  <properties/>
+  <testcase name="browse()" classname="id.ac.ui.cs.advprog.bidmart.catalog.controller.CatalogControllerTest" time="0.006"/>
+  <testcase name="detail()" classname="id.ac.ui.cs.advprog.bidmart.catalog.controller.CatalogControllerTest" time="0.071"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

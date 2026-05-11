@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="id.ac.ui.cs.advprog.bidmart.catalog.service.ListingServiceTest" tests="29" skipped="0" failures="0" errors="0" timestamp="2026-05-11T15:08:14.800Z" hostname="Nail" time="0.34">
+  <properties/>
+  <testcase name="testCreate_SuccessWithoutImages()" classname="id.ac.ui.cs.advprog.bidmart.catalog.service.ListingServiceTest" time="0.075"/>
+  <testcase name="testValidateListingForBid()" classname="id.ac.ui.cs.advprog.bidmart.catalog.service.ListingServiceTest" time="0.016"/>
+  <testcase name="testModerate_Reject()" classname="id.ac.ui.cs.advprog.bidmart.catalog.service.ListingServiceTest" time="0.084"/>
+  <testcase name="testFindBySeller()" classname="id.ac.ui.cs.advprog.bidmart.catalog.service.ListingServiceTest" time="0.004"/>
+  <testcase name="testFindDetailById_Success()" classname="id.ac.ui.cs.advprog.bidmart.catalog.service.ListingServiceTest" time="0.003"/>
+  <testcase name="testDelete_Success()" classname="id.ac.ui.cs.advprog.bidmart.catalog.service.ListingServiceTest" time="0.008"/>
+  <testcase name="testActivate_NotDraft()" classname="id.ac.ui.cs.advprog.bidmart.catalog.service.ListingServiceTest" time="0.003"/>
+  <testcase name="testUpdate_PartialFields()" classname="id.ac.ui.cs.advprog.bidmart.catalog.service.ListingServiceTest" time="0.039"/>
+  <testcase name="testCancel_Success()" classname="id.ac.ui.cs.advprog.bidmart.catalog.service.ListingServiceTest" time="0.003"/>
+  <testcase name="testUpdate_ClosedListing()" classname="id.ac.ui.cs.advprog.bidmart.catalog.service.ListingServiceTest" time="0.003"/>
+  <testcase name="testActivate_Success()" classname="id.ac.ui.cs.advprog.bidmart.catalog.service.ListingServiceTest" time="0.004"/>
+  <testcase name="testFindForCatalog()" classname="id.ac.ui.cs.advprog.bidmart.catalog.service.ListingServiceTest" time="0.004"/>
+  <testcase name="testUpdate_ActiveWithBids()" classname="id.ac.ui.cs.advprog.bidmart.catalog.service.ListingServiceTest" time="0.004"/>
+  <testcase name="testModerate_Approve()" classname="id.ac.ui.cs.advprog.bidmart.catalog.service.ListingServiceTest" time="0.003"/>
+  <testcase name="testUpdate_NullFields()" classname="id.ac.ui.cs.advprog.bidmart.catalog.service.ListingServiceTest" time="0.005"/>
+  <testcase name="testUpdate_ActiveWithoutBids()" classname="id.ac.ui.cs.advprog.bidmart.catalog.service.ListingServiceTest" time="0.012"/>
+  <testcase name="testModerate_RejectAlreadyClosed()" classname="id.ac.ui.cs.advprog.bidmart.catalog.service.ListingServiceTest" time="0.002"/>
+  <testcase name="testCreate_SuccessWithImages()" classname="id.ac.ui.cs.advprog.bidmart.catalog.service.ListingServiceTest" time="0.004"/>
+  <testcase name="testModerate_ApproveNotDraft()" classname="id.ac.ui.cs.advprog.bidmart.catalog.service.ListingServiceTest" time="0.003"/>
+  <testcase name="testDelete_NotDraft()" classname="id.ac.ui.cs.advprog.bidmart.catalog.service.ListingServiceTest" time="0.005"/>
+  <testcase name="testUpdate_NotOwner()" classname="id.ac.ui.cs.advprog.bidmart.catalog.service.ListingServiceTest" time="0.004"/>
+  <testcase name="testCancel_AlreadyClosed()" classname="id.ac.ui.cs.advprog.bidmart.catalog.service.ListingServiceTest" time="0.004"/>
+  <testcase name="testSyncPrice()" classname="id.ac.ui.cs.advprog.bidmart.catalog.service.ListingServiceTest" time="0.004"/>
+  <testcase name="testCancel_WithBids()" classname="id.ac.ui.cs.advprog.bidmart.catalog.service.ListingServiceTest" time="0.003"/>
+  <testcase name="testFindDetailById_NotFound()" classname="id.ac.ui.cs.advprog.bidmart.catalog.service.ListingServiceTest" time="0.002"/>
+  <testcase name="testUpdate_Success()" classname="id.ac.ui.cs.advprog.bidmart.catalog.service.ListingServiceTest" time="0.004"/>
+  <testcase name="testFindAllForAdmin()" classname="id.ac.ui.cs.advprog.bidmart.catalog.service.ListingServiceTest" time="0.003"/>
+  <testcase name="testCreate_CategoryNotFound()" classname="id.ac.ui.cs.advprog.bidmart.catalog.service.ListingServiceTest" time="0.003"/>
+  <testcase name="testModerate_Delete()" classname="id.ac.ui.cs.advprog.bidmart.catalog.service.ListingServiceTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

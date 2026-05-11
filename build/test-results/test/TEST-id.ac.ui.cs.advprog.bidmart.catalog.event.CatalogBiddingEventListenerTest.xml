@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="id.ac.ui.cs.advprog.bidmart.catalog.event.CatalogBiddingEventListenerTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-05-11T15:08:14.075Z" hostname="Nail" time="0.312">
+  <properties/>
+  <testcase name="onBidPlaced_ignoresIncompleteEvent()" classname="id.ac.ui.cs.advprog.bidmart.catalog.event.CatalogBiddingEventListenerTest" time="0.307"/>
+  <testcase name="onBidPlaced_syncsListingPrice()" classname="id.ac.ui.cs.advprog.bidmart.catalog.event.CatalogBiddingEventListenerTest" time="0.003"/>
+  <system-out><![CDATA[22:08:14.211 [Test worker] WARN id.ac.ui.cs.advprog.bidmart.catalog.event.CatalogBiddingEventListener -- Ignoring auction.bid-placed without listingId/currentPrice: auctionId=8c2f41aa-990f-4d52-b01a-b8aec9f809f4
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
