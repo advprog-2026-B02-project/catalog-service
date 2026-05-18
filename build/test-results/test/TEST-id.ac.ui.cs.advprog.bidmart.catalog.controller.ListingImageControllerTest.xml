@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="id.ac.ui.cs.advprog.bidmart.catalog.controller.ListingImageControllerTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-05-11T15:08:12.961Z" hostname="Nail" time="0.98">
-  <properties/>
-  <testcase name="addImage()" classname="id.ac.ui.cs.advprog.bidmart.catalog.controller.ListingImageControllerTest" time="0.97"/>
-  <testcase name="removeImage()" classname="id.ac.ui.cs.advprog.bidmart.catalog.controller.ListingImageControllerTest" time="0.007"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

@@ -1,0 +1,16 @@
+.gradle/
+build/
+bin/
+
+*.class
+*.log
+
+.env
+.env.*
+!.env.example
+
+.idea/
+.vscode/
+*.iml
+
+out/
