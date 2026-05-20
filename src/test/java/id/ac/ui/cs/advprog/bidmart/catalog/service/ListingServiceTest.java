@@ -23,6 +23,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -167,7 +168,7 @@ class ListingServiceTest {
     void testFindForCatalog() {
         Page<Listing> page = new PageImpl<>(List.of(listing));
         Pageable pageable = PageRequest.of(0, 10);
-        when(listingRepository.findByFilters(eq("kw"), eq(categoryId), eq(ListingStatus.ACTIVE), any(), any(), any(), eq(pageable)))
+        when(listingRepository.findAll(org.mockito.ArgumentMatchers.<Specification<Listing>>any(), eq(pageable)))
                 .thenReturn(page);
 
         Page<ListingSummaryResponse> res = listingService.findForCatalog("kw", categoryId, null, null, null, pageable);
