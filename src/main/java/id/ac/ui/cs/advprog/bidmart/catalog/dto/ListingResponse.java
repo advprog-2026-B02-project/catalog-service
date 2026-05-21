@@ -27,6 +27,9 @@ public class ListingResponse {
     private BigDecimal currentPrice;
     private Integer bidCount;
     private Instant createdAt;
+    private Instant activatedAt;
+    private Instant auctionEndTime;
+    private boolean auctionOngoing;
     private List<ListingImageResponse> images;
 
     public static ListingResponse from(Listing listing) {
@@ -44,6 +47,9 @@ public class ListingResponse {
                 listing.getCurrentPrice(),
                 listing.getBidCount(),
                 listing.getCreatedAt(),
+                listing.getActivatedAt(),
+                listing.getAuctionEndTime(),
+                listing.isAuctionOngoing(),
                 listing.getImages().stream()
                         .map(ListingImageResponse::from)
                         .toList()
