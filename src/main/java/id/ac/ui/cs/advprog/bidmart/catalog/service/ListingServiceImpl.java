@@ -55,12 +55,14 @@ public class ListingServiceImpl implements ListingService {
                 .status(ListingStatus.DRAFT)
                 .build();
 
+        Listing saved = listingRepository.save(listing);
+
         if (request.getImages() != null) {
             request.getImages().forEach(img ->
-                    listing.getImages().add(buildImage(img, listing)));
+                    saved.getImages().add(buildImage(img, saved)));
         }
 
-        return ListingResponse.from(listingRepository.save(listing));
+        return ListingResponse.from(listingRepository.save(saved));
     }
 
 
@@ -297,6 +299,7 @@ public class ListingServiceImpl implements ListingService {
 
     private ListingImage buildImage(ListingImageRequest req, Listing listing) {
         return ListingImage.builder()
+                .listingId(listing.getId())
                 .listing(listing)
                 .url(req.getUrl())
                 .thumbnailUrl(req.getThumbnailUrl())
