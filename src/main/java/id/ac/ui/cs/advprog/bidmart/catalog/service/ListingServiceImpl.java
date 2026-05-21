@@ -13,11 +13,9 @@ import id.ac.ui.cs.advprog.bidmart.catalog.model.ListingStatus;
 import id.ac.ui.cs.advprog.bidmart.catalog.repository.CategoryRepository;
 import id.ac.ui.cs.advprog.bidmart.catalog.repository.ListingRepository;
 import id.ac.ui.cs.advprog.bidmart.catalog.service.ListingService;
-import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +23,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -90,7 +87,8 @@ public class ListingServiceImpl implements ListingService {
             Pageable pageable
     ) {
         return listingRepository
-                .findAll(catalogSpecification(keyword, categoryId, minPrice, maxPrice, endsBefore), pageable)
+            .findByFilters(keyword, categoryId, ListingStatus.ACTIVE,
+                minPrice, maxPrice, endsBefore, pageable)
                 .map(ListingSummaryResponse::from);
     }
 
@@ -259,42 +257,6 @@ public class ListingServiceImpl implements ListingService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
                     "Category not found.");
         }
-    }
-
-    private Specification<Listing> catalogSpecification(
-            String keyword,
-            UUID categoryId,
-            BigDecimal minPrice,
-            BigDecimal maxPrice,
-            Instant endsBefore
-    ) {
-        return (root, query, criteriaBuilder) -> {
-            List<Predicate> predicates = new ArrayList<>();
-            predicates.add(criteriaBuilder.equal(root.get("status"), ListingStatus.ACTIVE));
-
-            if (categoryId != null) {
-                predicates.add(criteriaBuilder.equal(root.get("categoryId"), categoryId));
-            }
-            if (minPrice != null) {
-                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("currentPrice"), minPrice));
-            }
-            if (maxPrice != null) {
-                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("currentPrice"), maxPrice));
-            }
-            if (endsBefore != null) {
-                predicates.add(criteriaBuilder.isNotNull(root.get("activatedAt")));
-                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("activatedAt"), endsBefore));
-            }
-            if (keyword != null && !keyword.isBlank()) {
-                String keywordPattern = "%" + keyword.trim().toLowerCase() + "%";
-                predicates.add(criteriaBuilder.or(
-                        criteriaBuilder.like(criteriaBuilder.lower(root.get("title")), keywordPattern),
-                        criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), keywordPattern)
-                ));
-            }
-
-            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
-        };
     }
 
     private ListingImage buildImage(ListingImageRequest req, Listing listing) {
