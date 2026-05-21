@@ -103,7 +103,7 @@ class ListingServiceTest {
         ListingResponse response = listingService.create(sellerId, req);
         assertNotNull(response);
         verify(categoryRepository).existsById(categoryId);
-        verify(listingRepository).save(any(Listing.class));
+        verify(listingRepository, times(2)).save(any(Listing.class));
     }
 
     @Test
@@ -168,8 +168,9 @@ class ListingServiceTest {
     void testFindForCatalog() {
         Page<Listing> page = new PageImpl<>(List.of(listing));
         Pageable pageable = PageRequest.of(0, 10);
-        when(listingRepository.findAll(org.mockito.ArgumentMatchers.<Specification<Listing>>any(), eq(pageable)))
-                .thenReturn(page);
+        when(listingRepository.findByFilters(
+            any(), any(), any(), any(), any(), any(), eq(pageable)))
+            .thenReturn(page);
 
         Page<ListingSummaryResponse> res = listingService.findForCatalog("kw", categoryId, null, null, null, pageable);
         assertEquals(1, res.getTotalElements());

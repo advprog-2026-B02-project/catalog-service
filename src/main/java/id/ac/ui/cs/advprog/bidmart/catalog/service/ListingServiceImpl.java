@@ -87,8 +87,8 @@ public class ListingServiceImpl implements ListingService {
             Pageable pageable
     ) {
         return listingRepository
-            .findByFilters(keyword, categoryId, ListingStatus.ACTIVE,
-                minPrice, maxPrice, endsBefore, pageable)
+                .findByFilters(keyword, categoryId, ListingStatus.ACTIVE,
+                        minPrice, maxPrice, endsBefore, pageable)
                 .map(ListingSummaryResponse::from);
     }
 
