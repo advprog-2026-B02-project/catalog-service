@@ -39,7 +39,9 @@ import java.util.UUID;
                 @Index(name = "idx_listing_category_status",
                         columnList = "category_id, status"),
                 @Index(name = "idx_listing_status_price",
-                        columnList = "status, current_price")
+                        columnList = "status, current_price"),
+                @Index(name = "idx_listing_status_price_id",
+                        columnList = "status, current_price, id")
         }
 )
 @Getter

@@ -1,5 +1,6 @@
 package id.ac.ui.cs.advprog.bidmart.catalog.repository;
 
+import id.ac.ui.cs.advprog.bidmart.catalog.dto.ListingSummaryResponse;
 import id.ac.ui.cs.advprog.bidmart.catalog.model.Listing;
 import id.ac.ui.cs.advprog.bidmart.catalog.model.ListingStatus;
 import org.springframework.data.domain.Page;
@@ -25,6 +26,40 @@ public interface ListingRepository extends JpaRepository<Listing, UUID>, JpaSpec
     Page<Listing> findByStatus(ListingStatus status, Pageable pageable);
 
     Page<Listing> findAllByOrderByCreatedAtDesc(Pageable pageable);
+
+    @Query(
+            value = """
+            SELECT new id.ac.ui.cs.advprog.bidmart.catalog.dto.ListingSummaryResponse(
+                l.id,
+                l.title,
+                l.categoryId,
+                c.name,
+                l.status,
+                l.currentPrice,
+                l.startingPrice,
+                l.bidCount,
+                l.activatedAt,
+                l.auctionDuration,
+                COALESCE(MIN(li.thumbnailUrl), MIN(li.url))
+            )
+            FROM Listing l
+            LEFT JOIN l.category c
+            LEFT JOIN ListingImage li ON li.listingId = l.id
+            WHERE l.status = :status
+            GROUP BY l.id, l.title, l.categoryId, c.name, l.status,
+                l.currentPrice, l.startingPrice, l.bidCount,
+                l.activatedAt, l.auctionDuration
+            """,
+            countQuery = """
+            SELECT COUNT(l)
+            FROM Listing l
+            WHERE l.status = :status
+            """
+    )
+    Page<ListingSummaryResponse> findCatalogSummariesByStatus(
+            @Param("status") ListingStatus status,
+            Pageable pageable
+    );
 
     @Modifying
     @Query("""
@@ -52,6 +87,61 @@ public interface ListingRepository extends JpaRepository<Listing, UUID>, JpaSpec
                LOWER(COALESCE(l.description, '')) LIKE LOWER(CONCAT('%', :keyword, '%')))
             """)
         Page<Listing> findByFilters(
+            @Param("keyword")    String keyword,
+            @Param("categoryId") UUID categoryId,
+            @Param("status")     ListingStatus status,
+            @Param("minPrice")   BigDecimal minPrice,
+            @Param("maxPrice")   BigDecimal maxPrice,
+            @Param("endsBefore") Instant endsBefore,
+            Pageable pageable
+        );
+
+        @Query(
+            value = """
+            SELECT new id.ac.ui.cs.advprog.bidmart.catalog.dto.ListingSummaryResponse(
+                l.id,
+                l.title,
+                l.categoryId,
+                c.name,
+                l.status,
+                l.currentPrice,
+                l.startingPrice,
+                l.bidCount,
+                l.activatedAt,
+                l.auctionDuration,
+                COALESCE(MIN(li.thumbnailUrl), MIN(li.url))
+            )
+            FROM Listing l
+            LEFT JOIN l.category c
+            LEFT JOIN ListingImage li ON li.listingId = l.id
+            WHERE l.status = :status
+              AND (:categoryId IS NULL OR l.categoryId = :categoryId)
+              AND (:minPrice IS NULL OR l.currentPrice >= :minPrice)
+              AND (:maxPrice IS NULL OR l.currentPrice <= :maxPrice)
+              AND (:endsBefore IS NULL OR l.activatedAt IS NULL OR
+               FUNCTION('TIMESTAMPADD', SECOND, l.auctionDuration, l.activatedAt)
+               <= :endsBefore)
+              AND (:keyword IS NULL OR LOWER(l.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR
+               LOWER(COALESCE(l.description, '')) LIKE LOWER(CONCAT('%', :keyword, '%')))
+            GROUP BY l.id, l.title, l.categoryId, c.name, l.status,
+                l.currentPrice, l.startingPrice, l.bidCount,
+                l.activatedAt, l.auctionDuration
+            """,
+            countQuery = """
+            SELECT COUNT(l)
+            FROM Listing l
+            WHERE l.status = :status
+              AND (:categoryId IS NULL OR l.categoryId = :categoryId)
+              AND (:minPrice IS NULL OR l.currentPrice >= :minPrice)
+              AND (:maxPrice IS NULL OR l.currentPrice <= :maxPrice)
+              AND (:endsBefore IS NULL OR l.activatedAt IS NULL OR
+               FUNCTION('TIMESTAMPADD', SECOND, l.auctionDuration, l.activatedAt)
+               <= :endsBefore)
+              AND (:keyword IS NULL OR LOWER(l.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR
+               LOWER(COALESCE(l.description, '')) LIKE LOWER(CONCAT('%', :keyword, '%')))
+            """
+        )
+        Page<ListingSummaryResponse> findCatalogSummariesByFilters(
             @Param("keyword")    String keyword,
             @Param("categoryId") UUID categoryId,
             @Param("status")     ListingStatus status,

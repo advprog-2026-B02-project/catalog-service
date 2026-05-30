@@ -26,6 +26,35 @@ public class ListingSummaryResponse {
 
     private String thumbnailUrl;
 
+    public ListingSummaryResponse(
+            UUID id,
+            String title,
+            UUID categoryId,
+            String categoryName,
+            ListingStatus status,
+            BigDecimal currentPrice,
+            BigDecimal startingPrice,
+            Integer bidCount,
+            Instant activatedAt,
+            Long auctionDuration,
+            String thumbnailUrl
+    ) {
+        this(
+                id,
+                title,
+                categoryId,
+                categoryName,
+                status,
+                currentPrice,
+                startingPrice,
+                bidCount,
+                activatedAt == null || auctionDuration == null
+                        ? null
+                        : activatedAt.plusSeconds(auctionDuration),
+                thumbnailUrl
+        );
+    }
+
     public static ListingSummaryResponse from(Listing listing) {
         String categoryName = listing.getCategory() != null
                 ? listing.getCategory().getName()

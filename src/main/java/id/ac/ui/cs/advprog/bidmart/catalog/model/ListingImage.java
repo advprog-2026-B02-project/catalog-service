@@ -19,7 +19,13 @@ import lombok.Setter;
 import java.util.UUID;
 
 @Entity
-@Table(name = "listing_images")
+@Table(
+        name = "listing_images",
+        indexes = {
+                @Index(name = "idx_listing_image_listing_order",
+                        columnList = "listing_id, display_order")
+        }
+)
 @Getter
 @Setter
 @NoArgsConstructor

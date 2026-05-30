@@ -166,9 +166,9 @@ class ListingServiceTest {
 
     @Test
     void testFindForCatalog() {
-        Page<Listing> page = new PageImpl<>(List.of(listing));
+        Page<ListingSummaryResponse> page = new PageImpl<>(List.of(summary()));
         Pageable pageable = PageRequest.of(0, 10);
-        when(listingRepository.findByFilters(
+        when(listingRepository.findCatalogSummariesByFilters(
             any(), any(), any(), any(), any(), any(), eq(pageable)))
             .thenReturn(page);
 
@@ -178,16 +178,31 @@ class ListingServiceTest {
 
     @Test
     void testFindForCatalogWithoutFiltersUsesStatusQuery() {
-        Page<Listing> page = new PageImpl<>(List.of(listing));
+        Page<ListingSummaryResponse> page = new PageImpl<>(List.of(summary()));
         Pageable pageable = PageRequest.of(0, 10);
-        when(listingRepository.findByStatus(ListingStatus.ACTIVE, pageable))
+        when(listingRepository.findCatalogSummariesByStatus(ListingStatus.ACTIVE, pageable))
                 .thenReturn(page);
 
         Page<ListingSummaryResponse> res = listingService.findForCatalog("  ", null, null, null, null, pageable);
 
         assertEquals(1, res.getTotalElements());
-        verify(listingRepository).findByStatus(ListingStatus.ACTIVE, pageable);
-        verify(listingRepository, never()).findByFilters(any(), any(), any(), any(), any(), any(), any());
+        verify(listingRepository).findCatalogSummariesByStatus(ListingStatus.ACTIVE, pageable);
+        verify(listingRepository, never()).findCatalogSummariesByFilters(
+                any(), any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void testFindForCatalogCachesRepeatedPage() {
+        Page<ListingSummaryResponse> page = new PageImpl<>(List.of(summary()));
+        Pageable pageable = PageRequest.of(0, 10);
+        when(listingRepository.findCatalogSummariesByStatus(ListingStatus.ACTIVE, pageable))
+                .thenReturn(page);
+
+        listingService.findForCatalog(null, null, null, null, null, pageable);
+        listingService.findForCatalog(null, null, null, null, null, pageable);
+
+        verify(listingRepository, times(1))
+                .findCatalogSummariesByStatus(ListingStatus.ACTIVE, pageable);
     }
 
     @Test
@@ -404,5 +419,21 @@ class ListingServiceTest {
 
         when(listingRepository.syncPrice(listingId, BigDecimal.TEN, 2)).thenReturn(0);
         assertThrows(ResponseStatusException.class, () -> listingService.syncPrice(listingId, BigDecimal.TEN, 2));
+    }
+
+    private ListingSummaryResponse summary() {
+        return new ListingSummaryResponse(
+                listingId,
+                listing.getTitle(),
+                categoryId,
+                "Category",
+                ListingStatus.ACTIVE,
+                listing.getCurrentPrice(),
+                listing.getStartingPrice(),
+                listing.getBidCount(),
+                Instant.now(),
+                listing.getAuctionDuration(),
+                "thumb.png"
+        );
     }
 }

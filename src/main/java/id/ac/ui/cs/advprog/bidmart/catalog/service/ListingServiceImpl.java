@@ -15,6 +15,7 @@ import id.ac.ui.cs.advprog.bidmart.catalog.repository.ListingRepository;
 import id.ac.ui.cs.advprog.bidmart.catalog.service.ListingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -22,16 +23,23 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 @Service
 @RequiredArgsConstructor
 public class ListingServiceImpl implements ListingService {
 
+    private static final Duration CATALOG_CACHE_TTL = Duration.ofSeconds(10);
+
     private final ListingRepository  listingRepository;
     private final CategoryRepository categoryRepository;
+    private final ConcurrentHashMap<CatalogCacheKey, CatalogCacheEntry> catalogCache =
+            new ConcurrentHashMap<>();
 
 
     @Override
@@ -59,7 +67,9 @@ public class ListingServiceImpl implements ListingService {
                     saved.getImages().add(buildImage(img, saved)));
         }
 
-        return ListingResponse.from(listingRepository.save(saved));
+        Listing created = listingRepository.save(saved);
+        evictCatalogCache();
+        return ListingResponse.from(created);
     }
 
 
@@ -87,15 +97,11 @@ public class ListingServiceImpl implements ListingService {
             Pageable pageable
     ) {
         String normalizedKeyword = normalizeKeyword(keyword);
-        if (!hasCatalogFilters(normalizedKeyword, categoryId, minPrice, maxPrice, endsBefore)) {
-            return listingRepository.findByStatus(ListingStatus.ACTIVE, pageable)
-                    .map(ListingSummaryResponse::from);
-        }
+        CatalogCacheKey cacheKey = CatalogCacheKey.from(
+                normalizedKeyword, categoryId, minPrice, maxPrice, endsBefore, pageable);
 
-        return listingRepository
-                .findByFilters(normalizedKeyword, categoryId, ListingStatus.ACTIVE,
-                        minPrice, maxPrice, endsBefore, pageable)
-                .map(ListingSummaryResponse::from);
+        return cachedCatalogPage(cacheKey, () -> loadCatalogPage(
+                normalizedKeyword, categoryId, minPrice, maxPrice, endsBefore, pageable));
     }
 
     private boolean hasCatalogFilters(
@@ -117,6 +123,53 @@ public class ListingServiceImpl implements ListingService {
             return null;
         }
         return keyword.trim();
+    }
+
+    private Page<ListingSummaryResponse> loadCatalogPage(
+            String keyword,
+            UUID categoryId,
+            BigDecimal minPrice,
+            BigDecimal maxPrice,
+            Instant endsBefore,
+            Pageable pageable
+    ) {
+        if (!hasCatalogFilters(keyword, categoryId, minPrice, maxPrice, endsBefore)) {
+            return listingRepository.findCatalogSummariesByStatus(ListingStatus.ACTIVE, pageable);
+        }
+
+        return listingRepository.findCatalogSummariesByFilters(
+                keyword,
+                categoryId,
+                ListingStatus.ACTIVE,
+                minPrice,
+                maxPrice,
+                endsBefore,
+                pageable
+        );
+    }
+
+    private Page<ListingSummaryResponse> cachedCatalogPage(
+            CatalogCacheKey key,
+            Supplier<Page<ListingSummaryResponse>> loader
+    ) {
+        long now = System.nanoTime();
+        CatalogCacheEntry entry = catalogCache.compute(key, (ignored, cached) -> {
+            if (cached != null && cached.expiresAtNanos() > now) {
+                return cached;
+            }
+            Page<ListingSummaryResponse> loaded = loader.get();
+            Page<ListingSummaryResponse> stablePage = new PageImpl<>(
+                    List.copyOf(loaded.getContent()),
+                    loaded.getPageable(),
+                    loaded.getTotalElements()
+            );
+            return new CatalogCacheEntry(stablePage, now + CATALOG_CACHE_TTL.toNanos());
+        });
+        return entry.page();
+    }
+
+    private void evictCatalogCache() {
+        catalogCache.clear();
     }
 
 
@@ -146,7 +199,9 @@ public class ListingServiceImpl implements ListingService {
         if (request.getMinimumIncrement() != null) listing.setMinimumIncrement(request.getMinimumIncrement());
         if (request.getAuctionDuration()  != null) listing.setAuctionDuration(request.getAuctionDuration());
 
-        return ListingResponse.from(listingRepository.save(listing));
+        Listing saved = listingRepository.save(listing);
+        evictCatalogCache();
+        return ListingResponse.from(saved);
     }
 
 
@@ -165,7 +220,9 @@ public class ListingServiceImpl implements ListingService {
         listing.setActivatedAt(Instant.now());
         listing.setCurrentPrice(listing.getStartingPrice());
 
-        return ListingResponse.from(listingRepository.save(listing));
+        Listing saved = listingRepository.save(listing);
+        evictCatalogCache();
+        return ListingResponse.from(saved);
     }
 
 
@@ -186,6 +243,7 @@ public class ListingServiceImpl implements ListingService {
 
         listing.setStatus(ListingStatus.CLOSED);
         listingRepository.save(listing);
+        evictCatalogCache();
     }
 
 
@@ -201,6 +259,7 @@ public class ListingServiceImpl implements ListingService {
         }
 
         listingRepository.delete(listing);
+        evictCatalogCache();
     }
 
 
@@ -235,7 +294,9 @@ public class ListingServiceImpl implements ListingService {
             }
         }
 
-        return ListingResponse.from(listingRepository.save(listing));
+        Listing saved = listingRepository.save(listing);
+        evictCatalogCache();
+        return ListingResponse.from(saved);
     }
 
 
@@ -263,6 +324,7 @@ public class ListingServiceImpl implements ListingService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
                     "Listing not found.");
         }
+        evictCatalogCache();
     }
 
 
@@ -294,5 +356,42 @@ public class ListingServiceImpl implements ListingService {
                 .thumbnailUrl(req.getThumbnailUrl())
                 .displayOrder(req.getDisplayOrder())
                 .build();
+    }
+
+    private record CatalogCacheEntry(
+            Page<ListingSummaryResponse> page,
+            long expiresAtNanos
+    ) {
+    }
+
+    private record CatalogCacheKey(
+            String keyword,
+            UUID categoryId,
+            BigDecimal minPrice,
+            BigDecimal maxPrice,
+            Instant endsBefore,
+            int pageNumber,
+            int pageSize,
+            String sort
+    ) {
+        private static CatalogCacheKey from(
+                String keyword,
+                UUID categoryId,
+                BigDecimal minPrice,
+                BigDecimal maxPrice,
+                Instant endsBefore,
+                Pageable pageable
+        ) {
+            return new CatalogCacheKey(
+                    keyword,
+                    categoryId,
+                    minPrice,
+                    maxPrice,
+                    endsBefore,
+                    pageable.isPaged() ? pageable.getPageNumber() : -1,
+                    pageable.isPaged() ? pageable.getPageSize() : -1,
+                    pageable.getSort().toString()
+            );
+        }
     }
 }
