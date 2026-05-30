@@ -86,10 +86,37 @@ public class ListingServiceImpl implements ListingService {
             Instant endsBefore,
             Pageable pageable
     ) {
+        String normalizedKeyword = normalizeKeyword(keyword);
+        if (!hasCatalogFilters(normalizedKeyword, categoryId, minPrice, maxPrice, endsBefore)) {
+            return listingRepository.findByStatus(ListingStatus.ACTIVE, pageable)
+                    .map(ListingSummaryResponse::from);
+        }
+
         return listingRepository
-                .findByFilters(keyword, categoryId, ListingStatus.ACTIVE,
+                .findByFilters(normalizedKeyword, categoryId, ListingStatus.ACTIVE,
                         minPrice, maxPrice, endsBefore, pageable)
                 .map(ListingSummaryResponse::from);
+    }
+
+    private boolean hasCatalogFilters(
+            String keyword,
+            UUID categoryId,
+            BigDecimal minPrice,
+            BigDecimal maxPrice,
+            Instant endsBefore
+    ) {
+        return keyword != null
+                || categoryId != null
+                || minPrice != null
+                || maxPrice != null
+                || endsBefore != null;
+    }
+
+    private String normalizeKeyword(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return null;
+        }
+        return keyword.trim();
     }
 
 

@@ -20,6 +20,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
@@ -108,6 +109,7 @@ public class Listing {
             fetch = FetchType.LAZY
     )
     @OrderBy("displayOrder ASC")
+    @BatchSize(size = 50)
     @Builder.Default
     private List<ListingImage> images = new ArrayList<>();
 

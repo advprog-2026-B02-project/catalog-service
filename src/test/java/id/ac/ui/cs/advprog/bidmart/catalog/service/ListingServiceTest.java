@@ -177,6 +177,20 @@ class ListingServiceTest {
     }
 
     @Test
+    void testFindForCatalogWithoutFiltersUsesStatusQuery() {
+        Page<Listing> page = new PageImpl<>(List.of(listing));
+        Pageable pageable = PageRequest.of(0, 10);
+        when(listingRepository.findByStatus(ListingStatus.ACTIVE, pageable))
+                .thenReturn(page);
+
+        Page<ListingSummaryResponse> res = listingService.findForCatalog("  ", null, null, null, null, pageable);
+
+        assertEquals(1, res.getTotalElements());
+        verify(listingRepository).findByStatus(ListingStatus.ACTIVE, pageable);
+        verify(listingRepository, never()).findByFilters(any(), any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
     void testUpdate_Success() {
         UpdateListingRequest req = UpdateListingRequest.builder()
                 .categoryId(categoryId)

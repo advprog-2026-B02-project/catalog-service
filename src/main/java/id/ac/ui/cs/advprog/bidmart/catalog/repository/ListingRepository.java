@@ -42,15 +42,14 @@ public interface ListingRepository extends JpaRepository<Listing, UUID>, JpaSpec
         @Query("""
             SELECT l FROM Listing l
             WHERE l.status = :status
-              AND l.categoryId = COALESCE(:categoryId, l.categoryId)
-              AND l.currentPrice >= COALESCE(:minPrice, l.currentPrice)
-              AND l.currentPrice <= COALESCE(:maxPrice, l.currentPrice)
-              AND (l.activatedAt IS NULL OR
+              AND (:categoryId IS NULL OR l.categoryId = :categoryId)
+              AND (:minPrice IS NULL OR l.currentPrice >= :minPrice)
+              AND (:maxPrice IS NULL OR l.currentPrice <= :maxPrice)
+              AND (:endsBefore IS NULL OR l.activatedAt IS NULL OR
                FUNCTION('TIMESTAMPADD', SECOND, l.auctionDuration, l.activatedAt)
-               <= COALESCE(:endsBefore,
-                       FUNCTION('TIMESTAMPADD', SECOND, l.auctionDuration, l.activatedAt)))
-              AND (LOWER(l.title) LIKE LOWER(CONCAT('%', COALESCE(:keyword, ''), '%')) OR
-               LOWER(COALESCE(l.description, '')) LIKE LOWER(CONCAT('%', COALESCE(:keyword, ''), '%')))
+               <= :endsBefore)
+              AND (:keyword IS NULL OR LOWER(l.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR
+               LOWER(COALESCE(l.description, '')) LIKE LOWER(CONCAT('%', :keyword, '%')))
             """)
         Page<Listing> findByFilters(
             @Param("keyword")    String keyword,
